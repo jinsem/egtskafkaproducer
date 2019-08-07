@@ -1,0 +1,10 @@
+app:
+  host_name: ""
+  port: 6000
+  connection_ttl_sec: 60
+  log:
+    level: "DEBUG"
+kafka:
+  brokers:
+    - "localhost:9092"
+  output_topic_name: "egts_package_sample"
