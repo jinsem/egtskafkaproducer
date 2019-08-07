@@ -84,3 +84,7 @@ func (l *LogSettings) getLevel() log.Lvl {
 	}
 	return lvl
 }
+
+func (a *AppSettings) getFullAddress() string {
+	return a.HostName + ":" + a.Port
+}

@@ -1,5 +1,5 @@
 app:
-  HostName: "localhost:9092"
+  HostName: ""
   Port: 6000
   ConnectionTimeToLiveSec: 60
 log:

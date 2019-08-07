@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/labstack/gommon/log"
+	"net"
 	"os"
 )
 
@@ -15,6 +16,13 @@ const MAX_ARG_CNT = 2
 func main() {
 	loadSettings()
 	initLogger()
+	producer := EgtsProducer{}
+	if e := producer.Initialize(settings.Kafka); e != nil {
+		logger.Fatalf("Producer initialization failed: %v", e)
+	}
+	defer producer.Close()
+	startTcpListener(settings.App.getFullAddress(), producer)
+
 }
 
 func loadSettings() {
@@ -31,4 +39,23 @@ func initLogger() {
 	logger = log.New("-")
 	logger.SetHeader("${time_rfc3339_nano} ${short_file}:${line} ${level} -${message}")
 	logger.SetLevel(settings.Log.getLevel())
+}
+
+func startTcpListener(srvAddress string, producer EgtsProducer) {
+	listener, err := net.Listen("tcp", srvAddress)
+	if err != nil {
+		logger.Fatalf("Cannot open TCP connection: %v", err)
+	}
+	defer listener.Close()
+
+	logger.Infof("Listener is running on %s...", srvAddress)
+	for {
+		conn, err := listener.Accept()
+		if err != nil {
+			logger.Errorf("Ошибка соединения: %v", err)
+		} else {
+			// TODO: implement
+			go logger.Debug(conn.RemoteAddr())
+		}
+	}
 }
