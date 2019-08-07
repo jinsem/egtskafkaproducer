@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
 )
 
@@ -60,4 +61,26 @@ func (c *Settings) Load(configPath string) error {
 	c.Log = logS
 	c.Kafka = kafkaS
 	return nil
+}
+
+func (l *LogSettings) getLevel() log.Lvl {
+	var lvl log.Lvl
+
+	switch l.Level {
+	case "DEBUG":
+		lvl = log.DEBUG
+		break
+	case "INFO":
+		lvl = log.INFO
+		break
+	case "WARN":
+		lvl = log.WARN
+		break
+	case "ERROR":
+		lvl = log.ERROR
+		break
+	default:
+		lvl = log.INFO
+	}
+	return lvl
 }

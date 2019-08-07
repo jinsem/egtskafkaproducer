@@ -1,10 +1,11 @@
 app:
-  host_name: ""
-  port: 6000
-  connection_ttl_sec: 60
-  log:
-    level: "DEBUG"
+  HostName: "localhost:9092"
+  Port: 6000
+  ConnectionTimeToLiveSec: 60
+log:
+  Level: "DEBUG"
 kafka:
-  brokers:
-    - "localhost:9092"
-  output_topic_name: "egts_package_sample"
+  Brokers:
+    - "localhost1:9092"
+    - "localhost2:9092"
+  OutputTopicName: "egts_package_sample"
