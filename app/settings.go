@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
+	"time"
 )
 
 const AppKey = "app"
@@ -87,4 +88,8 @@ func (l *LogSettings) getLevel() log.Lvl {
 
 func (a *AppSettings) getFullAddress() string {
 	return a.HostName + ":" + a.Port
+}
+
+func (s *AppSettings) getConnectionTimeToLiveSec() time.Duration {
+	return time.Duration(s.ConnectionTimeToLiveSec) * time.Second
 }

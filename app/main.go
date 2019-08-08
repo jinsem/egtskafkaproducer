@@ -52,10 +52,9 @@ func startTcpListener(srvAddress string, producer EgtsProducer) {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			logger.Errorf("Ошибка соединения: %v", err)
+			logger.Errorf("Connection error: %v", err)
 		} else {
-			// TODO: implement
-			go logger.Debug(conn.RemoteAddr())
+			go handleRecvPkg(conn, producer)
 		}
 	}
 }
