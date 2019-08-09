@@ -1,0 +1,114 @@
+{
+  "type": "record",
+  "namespace": "com.projavt.ecology.schema",
+  "name": "EgtsRecord",
+  "fields": [
+    {"name": "imei",
+      "type": "string",
+      "doc": "IMEI of the device that sent this data"
+    },
+    {"name": "clinetId",
+      "type": "int",
+      "doc": "Client ID assigned to receiver device"
+    },
+    {"name": "packetID",
+      "type": "int",
+      "doc": "Identifier of the data packet"
+    },
+    {"name": "measurementTimestamp",
+      "type": "long",
+      "doc": "Timestamp of the measurement"
+    },
+    {"name": "receivedTimestamp",
+      "type": "long",
+      "doc": "Timestamp of receiveing the data from device"
+    },
+    {"name": "latitude",
+      "type": "long",
+      "doc": "Device's latitude at the moment of measurement"
+    },
+    {"name": "longitude",
+      "type": "long",
+      "doc": "Device's longitude at the moment of measurement"
+    },
+    {"name": "speed",
+      "type": "int",
+      "doc": "Device's speed at the moment of measurement"
+    },
+    {"name": "pdop",
+      "type": "int",
+      "doc": "Position dilution of precision"
+    },
+    {"name": "hdop",
+      "type": "int",
+      "doc": "Horizontal dilution of precision"
+    },
+    {"name": "vdop",
+      "type": "int",
+      "doc": "Vertical dilution of precision"
+    },
+    {"name": "numOfSatelites",
+      "type": "int",
+      "doc": "Number of satelites that were used to detect device position"
+    },
+    {"name": "navigationSystem",
+      "type":
+      { "namespace": "com.projavt.ecology.schema",
+        "type": "enum",
+        "name": "NavigationSystem",
+        "symbols" : ["Uknown", "GLONASS", "GPS", "Galileo", "Compass", "Beidou", "DORIS"]
+      },
+      "documentation": "Navigation system identifier"
+    },
+    {"name": "direction",
+      "type": "int",
+      "doc": "Angle (in degrees) between north meridian and device's moving direction (clockwise). Value is in [0, 359] degrees range"
+    },
+    {"name": "analogSensors",
+      "type": [{"type" : "array",
+        "items" : {
+          "namespace": "com.projavt.ecology.schema",
+          "type": "record",
+          "name": "AnalogSensor",
+          "fields": [
+            {"name": "sensorNumber",
+              "type": "int",
+              "doc": "Ordinal number of sensor"
+            },
+            {"name": "value",
+              "type": "int",
+              "doc": "Value red from sensor. Meaning is this value depends on type of the input. if analog device is connected to the input, value is millivolts. If input is used for counting discrete impulses, value is the number of impulses"
+            }
+          ]
+        }}, "null"],
+      "doc": "Values red from analog sensors connected to analog inputs at the moment of measurement. Some analog inputs can be used for counting signals from discrete inputs"
+    },
+    {"name": "liquidSensors",
+      "type": [{"type" : "array",
+        "items" : {
+          "namespace": "com.projavt.ecology.schema",
+          "type": "record",
+          "name": "LiquidSensor",
+          "fields": [
+            {"name": "sensorNumber",
+              "type": "int",
+              "doc": "Ordinal number of sensor"
+            },
+            {"name": "errorFlag",
+              "type": "string",
+              "doc": "Value is set if error occurred during reading value from liquid sensor"
+            },
+            {"name": "valueMillimeters",
+              "type": "int",
+              "doc": "This value is set if liquid sensor measures level of the liqid in a vessel. Otherwise value is 0"
+            },
+            {"name": "valueLitres",
+              "type": "int",
+              "doc": "This value is set if liquid sensor measures volume of the liqid in a vessel. Otherwise value is 0"
+            }
+          ]
+        }}, "null"],
+      "doc": "Values red from liquid sensors connected to liquid sensors inputs at the moment of measurement"
+    }
+  ]
+}
