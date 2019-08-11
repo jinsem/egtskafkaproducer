@@ -2,7 +2,6 @@ package main
 
 // Interface for EGTS kafka producer
 type Producer interface {
-
 	// Initialize producer
 	Initialize(kafka KafkaSettings) error
 
