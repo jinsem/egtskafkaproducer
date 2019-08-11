@@ -11,7 +11,7 @@ var (
 	logger   *log.Logger
 )
 
-const MAX_ARG_CNT = 2
+const maxArgCnt = 2
 
 func main() {
 	loadSettings()
@@ -20,13 +20,18 @@ func main() {
 	if e := producer.Initialize(settings.Kafka); e != nil {
 		logger.Fatalf("Producer initialization failed: %v", e)
 	}
-	defer producer.Close()
+	defer func() {
+		err := producer.Close()
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}()
 	startTcpListener(settings.App.getFullAddress(), producer)
 
 }
 
 func loadSettings() {
-	if len(os.Args) == MAX_ARG_CNT {
+	if len(os.Args) == maxArgCnt {
 		if err := settings.Load(os.Args[1]); err != nil {
 			logger.Fatalf("Application configuration cannot be parsed: %v", err)
 		}
@@ -46,7 +51,12 @@ func startTcpListener(srvAddress string, producer EgtsProducer) {
 	if err != nil {
 		logger.Fatalf("Cannot open TCP connection: %v", err)
 	}
-	defer listener.Close()
+	defer func() {
+		err := listener.Close()
+		if err != nil {
+			logger.Fatal(err)
+		}
+	}()
 
 	logger.Infof("Listener is running on %s...", srvAddress)
 	for {
