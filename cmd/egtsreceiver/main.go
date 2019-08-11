@@ -64,7 +64,7 @@ func startTcpListener(srvAddress string, producer EgtsProducer) {
 		if err != nil {
 			logger.Errorf("Connection error: %v", err)
 		} else {
-			go handleRecvPkg(conn, producer)
+			go handleReceivedvPackage(conn, producer)
 		}
 	}
 }

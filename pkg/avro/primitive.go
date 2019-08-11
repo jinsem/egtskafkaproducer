@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"github.com/actgardner/gogen-avro/vm/types"
 	"io"
+	"math"
 )
 
 type ByteWriter interface {
@@ -19,6 +20,33 @@ type ByteWriter interface {
 
 type StringWriter interface {
 	WriteString(string) (int, error)
+}
+
+func encodeFloat(w io.Writer, byteCount int, bits uint64) error {
+	var err error
+	var bb []byte
+	bw, ok := w.(ByteWriter)
+	if ok {
+		bw.Grow(byteCount)
+	} else {
+		bb = make([]byte, 0, byteCount)
+	}
+	for i := 0; i < byteCount; i++ {
+		if bw != nil {
+			err = bw.WriteByte(byte(bits & 255))
+			if err != nil {
+				return err
+			}
+		} else {
+			bb = append(bb, byte(bits&255))
+		}
+		bits = bits >> 8
+	}
+	if bw == nil {
+		_, err = w.Write(bb)
+		return err
+	}
+	return nil
 }
 
 func encodeInt(w io.Writer, byteCount int, encoded uint64) error {
@@ -109,17 +137,27 @@ func writeArrayLiquidSensor(r []*LiquidSensor, w io.Writer) error {
 	return writeLong(0, w)
 }
 
+func writeDouble(r float64, w io.Writer) error {
+	bits := uint64(math.Float64bits(r))
+	const byteCount = 8
+	return encodeFloat(w, byteCount, bits)
+}
+
 func writeEgtsPackage(r *EgtsPackage, w io.Writer) error {
 	var err error
 	err = writeString(r.Imei, w)
 	if err != nil {
 		return err
 	}
-	err = writeInt(r.ClinetId, w)
+	err = writeString(r.Guid, w)
 	if err != nil {
 		return err
 	}
-	err = writeInt(r.PacketID, w)
+	err = writeLong(r.ClinetId, w)
+	if err != nil {
+		return err
+	}
+	err = writeLong(r.PacketID, w)
 	if err != nil {
 		return err
 	}
@@ -131,11 +169,11 @@ func writeEgtsPackage(r *EgtsPackage, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writeLong(r.Latitude, w)
+	err = writeDouble(r.Latitude, w)
 	if err != nil {
 		return err
 	}
-	err = writeLong(r.Longitude, w)
+	err = writeDouble(r.Longitude, w)
 	if err != nil {
 		return err
 	}

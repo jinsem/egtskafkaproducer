@@ -7,12 +7,17 @@
       "type": "string",
       "doc": "IMEI of the device that sent this data"
     },
+    {"name": "guid",
+      "type": "string",
+      "logicalType": "UUID",
+      "doc": "Unique record identifier"
+    },
     {"name": "clinetId",
-      "type": "int",
+      "type": "long",
       "doc": "Client ID assigned to receiver device"
     },
     {"name": "packetID",
-      "type": "int",
+      "type": "long",
       "doc": "Identifier of the data packet"
     },
     {"name": "measurementTimestamp",
@@ -24,11 +29,11 @@
       "doc": "Timestamp of receiveing the data from device"
     },
     {"name": "latitude",
-      "type": "long",
+      "type": "double",
       "doc": "Device's latitude at the moment of measurement"
     },
     {"name": "longitude",
-      "type": "long",
+      "type": "double",
       "doc": "Device's longitude at the moment of measurement"
     },
     {"name": "speed",

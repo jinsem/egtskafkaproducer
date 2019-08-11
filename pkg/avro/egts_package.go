@@ -19,11 +19,14 @@ type EgtsPackage struct {
 	// IMEI of the device that sent this data
 	Imei string
 
+	// Unique record identifier
+	Guid string
+
 	// Client ID assigned to receiver device
-	ClinetId int32
+	ClinetId int64
 
 	// Identifier of the data packet
-	PacketID int32
+	PacketID int64
 
 	// Timestamp of the measurement
 	MeasurementTimestamp int64
@@ -32,10 +35,10 @@ type EgtsPackage struct {
 	ReceivedTimestamp int64
 
 	// Device's latitude at the moment of measurement
-	Latitude int64
+	Latitude float64
 
 	// Device's longitude at the moment of measurement
-	Longitude int64
+	Longitude float64
 
 	// Device's speed at the moment of measurement
 	Speed int32
@@ -85,7 +88,7 @@ func NewEgtsPackage() *EgtsPackage {
 }
 
 func (r *EgtsPackage) Schema() string {
-	return "{\"fields\":[{\"doc\":\"IMEI of the device that sent this data\",\"name\":\"imei\",\"type\":\"string\"},{\"doc\":\"Client ID assigned to receiver device\",\"name\":\"clinetId\",\"type\":\"int\"},{\"doc\":\"Identifier of the data packet\",\"name\":\"packetID\",\"type\":\"int\"},{\"doc\":\"Timestamp of the measurement\",\"name\":\"measurementTimestamp\",\"type\":\"long\"},{\"doc\":\"Timestamp of receiveing the data from device\",\"name\":\"receivedTimestamp\",\"type\":\"long\"},{\"doc\":\"Device's latitude at the moment of measurement\",\"name\":\"latitude\",\"type\":\"long\"},{\"doc\":\"Device's longitude at the moment of measurement\",\"name\":\"longitude\",\"type\":\"long\"},{\"doc\":\"Device's speed at the moment of measurement\",\"name\":\"speed\",\"type\":\"int\"},{\"doc\":\"Position dilution of precision\",\"name\":\"pdop\",\"type\":\"int\"},{\"doc\":\"Horizontal dilution of precision\",\"name\":\"hdop\",\"type\":\"int\"},{\"doc\":\"Vertical dilution of precision\",\"name\":\"vdop\",\"type\":\"int\"},{\"doc\":\"Number of satelites that were used to detect device position\",\"name\":\"numOfSatelites\",\"type\":\"int\"},{\"documentation\":\"Navigation system identifier\",\"name\":\"navigationSystem\",\"type\":{\"name\":\"NavigationSystem\",\"namespace\":\"com.projavt.ecology.schema\",\"symbols\":[\"Uknown\",\"GLONASS\",\"GPS\",\"Galileo\",\"Compass\",\"Beidou\",\"DORIS\"],\"type\":\"enum\"}},{\"doc\":\"Angle (in degrees) between north meridian and device's moving direction (clockwise). Value is in [0, 359] degrees range\",\"name\":\"direction\",\"type\":\"int\"},{\"doc\":\"Values red from analog sensors connected to analog inputs at the moment of measurement. Some analog inputs can be used for counting signals from discrete inputs\",\"name\":\"analogSensors\",\"type\":[{\"items\":{\"fields\":[{\"doc\":\"Ordinal number of sensor\",\"name\":\"sensorNumber\",\"type\":\"int\"},{\"doc\":\"Value red from sensor. Meaning is this value depends on type of the input. if analog device is connected to the input, value is millivolts. If input is used for counting discrete impulses, value is the number of impulses\",\"name\":\"value\",\"type\":\"int\"}],\"name\":\"AnalogSensor\",\"namespace\":\"com.projavt.ecology.schema\",\"type\":\"record\"},\"type\":\"array\"},\"null\"]},{\"doc\":\"Values red from liquid sensors connected to liquid sensors inputs at the moment of measurement\",\"name\":\"liquidSensors\",\"type\":[{\"items\":{\"fields\":[{\"doc\":\"Ordinal number of sensor\",\"name\":\"sensorNumber\",\"type\":\"int\"},{\"doc\":\"Value is set if error occurred during reading value from liquid sensor\",\"name\":\"errorFlag\",\"type\":\"string\"},{\"doc\":\"This value is set if liquid sensor measures level of the liqid in a vessel. Otherwise value is 0\",\"name\":\"valueMillimeters\",\"type\":\"int\"},{\"doc\":\"This value is set if liquid sensor measures volume of the liqid in a vessel. Otherwise value is 0\",\"name\":\"valueLitres\",\"type\":\"int\"}],\"name\":\"LiquidSensor\",\"namespace\":\"com.projavt.ecology.schema\",\"type\":\"record\"},\"type\":\"array\"},\"null\"]}],\"name\":\"EgtsPackage\",\"namespace\":\"com.projavt.ecology.schema\",\"type\":\"record\"}"
+	return "{\"fields\":[{\"doc\":\"IMEI of the device that sent this data\",\"name\":\"imei\",\"type\":\"string\"},{\"doc\":\"Unique record identifier\",\"logicalType\":\"UUID\",\"name\":\"guid\",\"type\":\"string\"},{\"doc\":\"Client ID assigned to receiver device\",\"name\":\"clinetId\",\"type\":\"long\"},{\"doc\":\"Identifier of the data packet\",\"name\":\"packetID\",\"type\":\"long\"},{\"doc\":\"Timestamp of the measurement\",\"name\":\"measurementTimestamp\",\"type\":\"long\"},{\"doc\":\"Timestamp of receiveing the data from device\",\"name\":\"receivedTimestamp\",\"type\":\"long\"},{\"doc\":\"Device's latitude at the moment of measurement\",\"name\":\"latitude\",\"type\":\"double\"},{\"doc\":\"Device's longitude at the moment of measurement\",\"name\":\"longitude\",\"type\":\"double\"},{\"doc\":\"Device's speed at the moment of measurement\",\"name\":\"speed\",\"type\":\"int\"},{\"doc\":\"Position dilution of precision\",\"name\":\"pdop\",\"type\":\"int\"},{\"doc\":\"Horizontal dilution of precision\",\"name\":\"hdop\",\"type\":\"int\"},{\"doc\":\"Vertical dilution of precision\",\"name\":\"vdop\",\"type\":\"int\"},{\"doc\":\"Number of satelites that were used to detect device position\",\"name\":\"numOfSatelites\",\"type\":\"int\"},{\"documentation\":\"Navigation system identifier\",\"name\":\"navigationSystem\",\"type\":{\"name\":\"NavigationSystem\",\"namespace\":\"com.projavt.ecology.schema\",\"symbols\":[\"Uknown\",\"GLONASS\",\"GPS\",\"Galileo\",\"Compass\",\"Beidou\",\"DORIS\"],\"type\":\"enum\"}},{\"doc\":\"Angle (in degrees) between north meridian and device's moving direction (clockwise). Value is in [0, 359] degrees range\",\"name\":\"direction\",\"type\":\"int\"},{\"doc\":\"Values red from analog sensors connected to analog inputs at the moment of measurement. Some analog inputs can be used for counting signals from discrete inputs\",\"name\":\"analogSensors\",\"type\":[{\"items\":{\"fields\":[{\"doc\":\"Ordinal number of sensor\",\"name\":\"sensorNumber\",\"type\":\"int\"},{\"doc\":\"Value red from sensor. Meaning is this value depends on type of the input. if analog device is connected to the input, value is millivolts. If input is used for counting discrete impulses, value is the number of impulses\",\"name\":\"value\",\"type\":\"int\"}],\"name\":\"AnalogSensor\",\"namespace\":\"com.projavt.ecology.schema\",\"type\":\"record\"},\"type\":\"array\"},\"null\"]},{\"doc\":\"Values red from liquid sensors connected to liquid sensors inputs at the moment of measurement\",\"name\":\"liquidSensors\",\"type\":[{\"items\":{\"fields\":[{\"doc\":\"Ordinal number of sensor\",\"name\":\"sensorNumber\",\"type\":\"int\"},{\"doc\":\"Value is set if error occurred during reading value from liquid sensor\",\"name\":\"errorFlag\",\"type\":\"string\"},{\"doc\":\"This value is set if liquid sensor measures level of the liqid in a vessel. Otherwise value is 0\",\"name\":\"valueMillimeters\",\"type\":\"int\"},{\"doc\":\"This value is set if liquid sensor measures volume of the liqid in a vessel. Otherwise value is 0\",\"name\":\"valueLitres\",\"type\":\"int\"}],\"name\":\"LiquidSensor\",\"namespace\":\"com.projavt.ecology.schema\",\"type\":\"record\"},\"type\":\"array\"},\"null\"]}],\"name\":\"EgtsPackage\",\"namespace\":\"com.projavt.ecology.schema\",\"type\":\"record\"}"
 }
 
 func (r *EgtsPackage) SchemaName() string {
@@ -109,35 +112,37 @@ func (r *EgtsPackage) Get(i int) types.Field {
 	case 0:
 		return (*types.String)(&r.Imei)
 	case 1:
-		return (*types.Int)(&r.ClinetId)
+		return (*types.String)(&r.Guid)
 	case 2:
-		return (*types.Int)(&r.PacketID)
+		return (*types.Long)(&r.ClinetId)
 	case 3:
-		return (*types.Long)(&r.MeasurementTimestamp)
+		return (*types.Long)(&r.PacketID)
 	case 4:
-		return (*types.Long)(&r.ReceivedTimestamp)
+		return (*types.Long)(&r.MeasurementTimestamp)
 	case 5:
-		return (*types.Long)(&r.Latitude)
+		return (*types.Long)(&r.ReceivedTimestamp)
 	case 6:
-		return (*types.Long)(&r.Longitude)
+		return (*types.Double)(&r.Latitude)
 	case 7:
-		return (*types.Int)(&r.Speed)
+		return (*types.Double)(&r.Longitude)
 	case 8:
-		return (*types.Int)(&r.Pdop)
+		return (*types.Int)(&r.Speed)
 	case 9:
-		return (*types.Int)(&r.Hdop)
+		return (*types.Int)(&r.Pdop)
 	case 10:
-		return (*types.Int)(&r.Vdop)
+		return (*types.Int)(&r.Hdop)
 	case 11:
-		return (*types.Int)(&r.NumOfSatelites)
+		return (*types.Int)(&r.Vdop)
 	case 12:
-		return (*types.Int)(&r.NavigationSystem)
+		return (*types.Int)(&r.NumOfSatelites)
 	case 13:
-		return (*types.Int)(&r.Direction)
+		return (*types.Int)(&r.NavigationSystem)
 	case 14:
+		return (*types.Int)(&r.Direction)
+	case 15:
 		r.AnalogSensors = NewUnionArrayAnalogSensorNull()
 		return r.AnalogSensors
-	case 15:
+	case 16:
 		r.LiquidSensors = NewUnionArrayLiquidSensorNull()
 		return r.LiquidSensors
 
