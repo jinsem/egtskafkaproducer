@@ -1,4 +1,4 @@
-package main
+package pkg
 
 // Use a go:generate directive to build the Go structs for `egtspackage.avsc`
 

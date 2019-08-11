@@ -4,7 +4,6 @@ package main
 import (
 	"encoding/binary"
 	egts "github.com/kuznetsovin/egts/pkg/egtslib"
-	// egtsschema "github.com/jinsem/egtskafkaproducer/app/avro"
 	//TODO: output format
 	//uuid "github.com/satori/go.uuid"
 	"io"
