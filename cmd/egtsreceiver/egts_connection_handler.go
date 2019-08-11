@@ -4,9 +4,9 @@ package main
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/google/uuid"
 	egtsschema "github.com/jinsem/egtskafkaproducer/pkg/avro"
 	egts "github.com/kuznetsovin/egts/pkg/egtslib"
-	uuid "github.com/satori/go.uuid"
 	"io"
 	"net"
 	"time"
@@ -28,7 +28,7 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
 		recvPacket        []byte
 		deviceImei        string
 	)
-	logger.Debug("Соединение установлено. Адрес устройства: %s", conn.RemoteAddr())
+	logger.Debugf("Соединение установлено. Адрес устройства: %s", conn.RemoteAddr())
 	for {
 	Received:
 		serviceType = 0
@@ -139,7 +139,7 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
 						exportPacket.Longitude = subRecData.Longitude
 						exportPacket.Speed = int32(subRecData.Speed)
 						exportPacket.Direction = int32(subRecData.Direction)
-						exportPacket.Guid = fmt.Sprintf("%s", uuid.NewV4())
+						exportPacket.Guid = fmt.Sprintf("%s", uuid.New())
 					case *egts.SrExtPosData:
 						logger.Debugf("Разбор подзаписи EGTS_SR_EXT_POS_DATA")
 						exportPacket.NumOfSatelites = int32(subRecData.Satellites)
