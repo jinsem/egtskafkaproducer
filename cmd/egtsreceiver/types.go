@@ -1,14 +1,14 @@
 package main
 
-// Interface for EGTS kafka producer
-type Producer interface {
-	// Initialize producer
+import (
+	egtsschema "github.com/jinsem/egtskafkaproducer/pkg/avro"
+)
+
+// Interface for EGTS records persister
+type Persister interface {
 	Initialize(kafka KafkaSettings) error
 
-	// Produce record
-	// TODO: Define input parameter
-	Produce() error
+	Persist(egtsPackage egtsschema.EgtsPackage) error
 
-	// Close producer and all the opened resources
 	Close() error
 }

@@ -1,19 +1,19 @@
 package main
 
 import (
-	egtsschema "../../pkg/avro"
+	egtsschema "github.com/jinsem/egtskafkaproducer/pkg/avro"
 )
 
-type EgtsProducer struct{}
+type EgtsKafkaPersister struct{}
 
-func (p *EgtsProducer) Initialize(kafka KafkaSettings) error {
+func (p *EgtsKafkaPersister) Initialize(kafka KafkaSettings) error {
 	return nil
 }
 
-func (p *EgtsProducer) Produce(egtsPackage *egtsschema.EgtsPackage) error {
+func (p *EgtsKafkaPersister) Produce(egtsPackage *egtsschema.EgtsPackage) error {
 	return nil
 }
 
-func (p *EgtsProducer) Close() error {
+func (p *EgtsKafkaPersister) Close() error {
 	return nil
 }

@@ -2,10 +2,9 @@
 package main
 
 import (
-	egtsschema "../../pkg/avro"
 	"encoding/binary"
 	"fmt"
-	"github.com/jinsem/egtskafkaproducer/app/avro"
+	egtsschema "github.com/jinsem/egtskafkaproducer/pkg/avro"
 	egts "github.com/kuznetsovin/egts/pkg/egtslib"
 	uuid "github.com/satori/go.uuid"
 	"io"
@@ -19,14 +18,15 @@ const (
 	protocolVersion = 0x01
 )
 
-func handleReceivedvPackage(conn net.Conn, producer EgtsProducer) {
+func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
 
 	var (
-		isPkgSave         bool
+		readyToPersist    bool
 		srResultCodePkg   []byte
 		serviceType       uint8
 		srResponsesRecord egts.RecordDataSet
 		recvPacket        []byte
+		deviceImei        string
 	)
 	logger.Debug("Соединение установлено. Адрес устройства: %s", conn.RemoteAddr())
 	for {
@@ -98,8 +98,8 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsProducer) {
 			logger.Info("Тип пакета EGTS_PT_APPDATA")
 
 			for _, rec := range *pkg.ServicesFrameData.(*egts.ServiceDataSet) {
-                exportPacket := egtsschema.EgtsPackage{}
-				isPkgSave = false
+				exportPacket := egtsschema.EgtsPackage{}
+				readyToPersist = false
 				packetIDBytes := make([]byte, 4)
 
 				srResponsesRecord = append(srResponsesRecord, egts.RecordData{
@@ -113,12 +113,12 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsProducer) {
 				serviceType = rec.SourceServiceType
 				logger.Info("Тип сервиса ", serviceType)
 
-                exportPacket.ClinetId = int64(rec.ObjectIdentifier)
+				exportPacket.ClinetId = int64(rec.ObjectIdentifier)
 				for _, subRec := range rec.RecordDataSet {
 					switch subRecData := subRec.SubrecordData.(type) {
 					case *egts.SrTermIdentity:
 						logger.Debugf("Разбор подзаписи EGTS_SR_TERM_IDENTITY")
-						exportPacket.Imei = subRecData.IMEI
+						deviceImei = subRecData.IMEI
 						if srResultCodePkg, err = createSrResultCode(&pkg, egtsPcOk); err != nil {
 							logger.Errorf("Ошибка сборки EGTS_SR_RESULT_CODE: %v", err)
 						}
@@ -131,16 +131,15 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsProducer) {
 						logger.Debugf("Разбор подзаписи EGTS_SR_RESPONSE")
 						goto Received
 					case *egts.SrPosData:
+						readyToPersist = true
 						logger.Debugf("Разбор подзаписи EGTS_SR_POS_DATA")
-						isPkgSave = true
 						exportPacket.MeasurementTimestamp = subRecData.NavigationTime.Unix()
 						exportPacket.ReceivedTimestamp = time.Now().UTC().Unix()
 						exportPacket.Latitude = subRecData.Latitude
 						exportPacket.Longitude = subRecData.Longitude
 						exportPacket.Speed = int32(subRecData.Speed)
 						exportPacket.Direction = int32(subRecData.Direction)
-                        recordUuid, _ :=  uuid.NewV4()
-						exportPacket.Guid = fmt.Sprintf("%s", recordUuid)
+						exportPacket.Guid = fmt.Sprintf("%s", uuid.NewV4())
 					case *egts.SrExtPosData:
 						logger.Debugf("Разбор подзаписи EGTS_SR_EXT_POS_DATA")
 						exportPacket.NumOfSatelites = int32(subRecData.Satellites)
@@ -150,6 +149,7 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsProducer) {
 						exportPacket.NavigationSystem = toNavigationSystem(subRecData.NavigationSystem)
 
 					case *egts.SrAdSensorsData:
+						readyToPersist = true
 						logger.Debugf("Разбор подзаписи EGTS_SR_AD_SENSORS_DATA")
 						analogSensors := egtsschema.UnionArrayAnalogSensorNull{}
 						if subRecData.AnalogSensorFieldExists1 == "1" {
@@ -186,6 +186,7 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsProducer) {
 						}
 						exportPacket.AnalogSensors = &analogSensors
 					case *egts.SrAbsCntrData:
+						readyToPersist = true
 						logger.Debugf("Разбор подзаписи EGTS_SR_ABS_CNTR_DATA")
 
 						switch subRecData.CounterNumber {
@@ -205,6 +206,7 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsProducer) {
 							exportPacket.PacketID = int64(binary.LittleEndian.Uint32(packetIDBytes))
 						}
 					case *egts.SrLiquidLevelSensor:
+						readyToPersist = true
 						logger.Debugf("Разбор подзаписи EGTS_SR_LIQUID_LEVEL_SENSOR")
 						liquidSensors := egtsschema.UnionArrayLiquidSensorNull{}
 						valueMillimetres := int32(0)
@@ -225,8 +227,9 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsProducer) {
 					}
 				}
 
-				if isPkgSave {
-					if err := producer.Produce( &exportPacket ); err != nil {
+				if readyToPersist {
+					exportPacket.Imei = deviceImei
+					if err := producer.Produce(&exportPacket); err != nil {
 						logger.Error(err)
 					}
 				}
@@ -255,24 +258,24 @@ func toNavigationSystem(egtsNavSystemCode uint16) egtsschema.NavigationSystem {
 	switch egtsNavSystemCode {
 	// Glonass
 	case 1:
-		return egtsschema.NavigationSystem(avro.NavigationSystemGLONASS);
+		return egtsschema.NavigationSystem(egtsschema.NavigationSystemGLONASS)
 	// GPS
 	case 2:
-		return egtsschema.NavigationSystem(avro.NavigationSystemGPS);
+		return egtsschema.NavigationSystem(egtsschema.NavigationSystemGPS)
 	// Galileo
 	case 4:
-		return egtsschema.NavigationSystem(avro.NavigationSystemGalileo);
+		return egtsschema.NavigationSystem(egtsschema.NavigationSystemGalileo)
 	// Compass
 	case 8:
-		return egtsschema.NavigationSystem(avro.NavigationSystemCompass);
+		return egtsschema.NavigationSystem(egtsschema.NavigationSystemCompass)
 	// Beidou
 	case 16:
-		return egtsschema.NavigationSystem(avro.NavigationSystemBeidou);
+		return egtsschema.NavigationSystem(egtsschema.NavigationSystemBeidou)
 	// DORIS
 	case 32:
-		return egtsschema.NavigationSystem(avro.NavigationSystemDORIS);
+		return egtsschema.NavigationSystem(egtsschema.NavigationSystemDORIS)
 	// unknown
 	default: // including 0
-		return egtsschema.NavigationSystem(avro.NavigationSystemUknown);
+		return egtsschema.NavigationSystem(egtsschema.NavigationSystemUknown)
 	}
 }

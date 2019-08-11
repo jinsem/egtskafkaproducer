@@ -7,5 +7,4 @@ log:
 kafka:
   Brokers:
     - "localhost1:9092"
-    - "localhost2:9092"
   OutputTopicName: "egts_package_sample"

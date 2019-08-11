@@ -14,11 +14,13 @@ var (
 const maxArgCnt = 2
 
 func main() {
+	logger = log.New("-")
+	logger.SetHeader("${time_rfc3339_nano} ${short_file}:${line} ${level} -${message}")
 	loadSettings()
-	initLogger()
-	producer := EgtsProducer{}
+	logger.SetLevel(settings.Log.getLevel())
+	producer := EgtsKafkaPersister{}
 	if e := producer.Initialize(settings.Kafka); e != nil {
-		logger.Fatalf("Producer initialization failed: %v", e)
+		logger.Fatalf("Persister initialization failed: %v", e)
 	}
 	defer func() {
 		err := producer.Close()
@@ -40,13 +42,7 @@ func loadSettings() {
 	}
 }
 
-func initLogger() {
-	logger = log.New("-")
-	logger.SetHeader("${time_rfc3339_nano} ${short_file}:${line} ${level} -${message}")
-	logger.SetLevel(settings.Log.getLevel())
-}
-
-func startTcpListener(srvAddress string, producer EgtsProducer) {
+func startTcpListener(srvAddress string, producer EgtsKafkaPersister) {
 	listener, err := net.Listen("tcp", srvAddress)
 	if err != nil {
 		logger.Fatalf("Cannot open TCP connection: %v", err)
