@@ -43,24 +43,10 @@ func (c *Settings) Load(configPath string) error {
 			return fmt.Errorf("Configuration file cannot be loaded because of the error: %v \n", err)
 		}
 	}
-	appS := AppSettings{}
-	logS := LogSettings{}
-	kafkaS := KafkaSettings{}
-	err := viper.UnmarshalKey(AppKey, &appS)
-	if err != nil {
-		return fmt.Errorf("Unable to decode application configuration %v", err)
+
+	if err := viper.Unmarshal(c); err != nil {
+		return fmt.Errorf("Unable to decode configuration %v", err)
 	}
-	err = viper.UnmarshalKey(LogKey, &logS)
-	if err != nil {
-		return fmt.Errorf("Unable to decode log configuration %v", err)
-	}
-	err = viper.UnmarshalKey(KafkaKey, &kafkaS)
-	if err != nil {
-		return fmt.Errorf("Unable to decode Kafka configuration %v", err)
-	}
-	c.App = appS
-	c.Log = logS
-	c.Kafka = kafkaS
 	return nil
 }
 
