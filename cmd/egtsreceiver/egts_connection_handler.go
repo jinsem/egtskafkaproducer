@@ -229,6 +229,7 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
 
 				if readyToPersist {
 					exportPacket.Imei = deviceImei
+					verifyNullableAttributes(&exportPacket)
 					if err := producer.Produce(&exportPacket); err != nil {
 						logger.Error(err)
 					}
@@ -251,6 +252,19 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
 		case egts.PtResponsePacket:
 			logger.Debug("Тип пакета EGTS_PT_RESPONSE")
 		}
+	}
+}
+
+func verifyNullableAttributes(egtsPackage *egtsschema.EgtsPackage) {
+	if egtsPackage.AnalogSensors == nil {
+		sensors := egtsschema.UnionArrayAnalogSensorNull{}
+		egtsPackage.AnalogSensors = &sensors
+
+	}
+	if egtsPackage.LiquidSensors == nil {
+		sensors := egtsschema.UnionArrayLiquidSensorNull{}
+		egtsPackage.LiquidSensors = &sensors
+
 	}
 }
 

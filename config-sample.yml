@@ -6,5 +6,5 @@ log:
   Level: "DEBUG"
 kafka:
   Brokers:
-    - "localhost1:9092"
+    - "localhost:29092"
   OutputTopicName: "egts_package_sample"

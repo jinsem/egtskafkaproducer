@@ -19,7 +19,7 @@ func main() {
 	loadSettings()
 	logger.SetLevel(settings.Log.getLevel())
 	producer := EgtsKafkaPersister{}
-	if e := producer.Initialize(settings.Kafka); e != nil {
+	if e := producer.Initialize(&settings.Kafka); e != nil {
 		logger.Fatalf("Persister initialization failed: %v", e)
 	}
 	defer func() {
