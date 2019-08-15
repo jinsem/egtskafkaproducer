@@ -2,14 +2,21 @@ package main
 
 import (
 	"fmt"
+	"github.com/imdario/mergo"
 	"github.com/labstack/gommon/log"
 	"github.com/spf13/viper"
+	"os"
+	"strings"
 	"time"
 )
 
-const AppKey = "app"
-const LogKey = "log"
-const KafkaKey = "kafka"
+const prefix = "EGTS_RECEIVER"
+const appHostname = "APP_HOSTNAME"
+const appPort = "APP_PORT"
+const appConnectiontimetolivesec = "APP_CONNECTIONTIMETOLIVESEC"
+const logLevel = "LOG_LEVEL"
+const kafkaBrokers = "KAFKA_BROKERS"
+const kafkaOutputtopicname = "KAFKA_OUTPUTTOPICNAME"
 
 type Settings struct {
 	App   AppSettings
@@ -32,22 +39,46 @@ type KafkaSettings struct {
 	OutputTopicName string
 }
 
-func (c *Settings) Load(configPath string) error {
+func (s *Settings) Load(configPath string) error {
 
 	viper.SetConfigFile(configPath)
 	viper.SetConfigType("yaml")
+	viper.SetEnvPrefix(prefix)
+	viper.AutomaticEnv()
 	if err := viper.ReadInConfig(); err != nil {
-		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			return fmt.Errorf("Configuration file %s not found \n", configPath)
-		} else {
+		_, confNotFound := err.(viper.ConfigFileNotFoundError)
+		_, pathErr := err.(*os.PathError)
+		if !confNotFound && !pathErr {
 			return fmt.Errorf("Configuration file cannot be loaded because of the error: %v \n", err)
 		}
 	}
 
-	if err := viper.Unmarshal(c); err != nil {
-		return fmt.Errorf("Unable to decode configuration %v", err)
+	if err := viper.Unmarshal(s); err != nil {
+		return fmt.Errorf("Ошибка создания объекта настроек %v", err)
+	}
+
+	if err := updateFromEnv(s); err != nil {
+		return fmt.Errorf("Ошибка инициализации объекта настроек %v", err)
 	}
 	return nil
+}
+
+func updateFromEnv(s *Settings) error {
+	envS := Settings{
+		App: AppSettings{
+			HostName:                viper.GetString(appHostname),
+			Port:                    viper.GetString(appPort),
+			ConnectionTimeToLiveSec: viper.GetInt(appConnectiontimetolivesec),
+		},
+		Log: LogSettings{
+			Level: viper.GetString(logLevel),
+		},
+		Kafka: KafkaSettings{
+			Brokers:         strings.Split(viper.GetString(kafkaBrokers), ","),
+			OutputTopicName: viper.GetString(kafkaOutputtopicname),
+		},
+	}
+	return mergo.Merge(s, &envS)
 }
 
 func (l *LogSettings) getLevel() log.Lvl {

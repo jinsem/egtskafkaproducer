@@ -8,6 +8,7 @@ require (
 	github.com/golang/protobuf v1.3.1
 	github.com/google/go-cmp v0.3.0
 	github.com/google/uuid v1.1.1
+	github.com/imdario/mergo v0.3.7
 	github.com/kuznetsovin/egts v0.0.0-20190709101854-c0fb931b80cb
 	github.com/labstack/gommon v0.2.8
 	github.com/lib/pq v1.1.1
