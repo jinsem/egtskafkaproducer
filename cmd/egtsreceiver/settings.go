@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"github.com/imdario/mergo"
 	"github.com/labstack/gommon/log"
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
+	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,68 +19,94 @@ const appConnectiontimetolivesec = "APP_CONNECTIONTIMETOLIVESEC"
 const logLevel = "LOG_LEVEL"
 const kafkaBrokers = "KAFKA_BROKERS"
 const kafkaOutputtopicname = "KAFKA_OUTPUTTOPICNAME"
+const defaultTtl = 60
 
 type Settings struct {
-	App   AppSettings
-	Log   LogSettings
-	Kafka KafkaSettings
+	App   AppSettings   `yaml:"app"`
+	Log   LogSettings   `yaml:"log"`
+	Kafka KafkaSettings `yaml:"kafka"`
 }
 
 type AppSettings struct {
-	HostName                string
-	Port                    string
-	ConnectionTimeToLiveSec int
+	HostName                string `yaml:"HostName"`
+	Port                    string `yaml:"Port"`
+	ConnectionTimeToLiveSec int    `yaml:"ConnectionTimeToLiveSec"`
 }
 
 type LogSettings struct {
-	Level string
+	Level string `yaml:"Level"`
 }
 
 type KafkaSettings struct {
-	Brokers         []string
-	OutputTopicName string
+	Brokers         []string `yaml:"Brokers"`
+	OutputTopicName string   `yaml:"OutputTopicName"`
 }
 
-func (s *Settings) Load(configPath string) error {
-
-	viper.SetConfigFile(configPath)
-	viper.SetConfigType("yaml")
-	viper.SetEnvPrefix(prefix)
-	viper.AutomaticEnv()
-	if err := viper.ReadInConfig(); err != nil {
-		_, confNotFound := err.(viper.ConfigFileNotFoundError)
-		_, pathErr := err.(*os.PathError)
-		if !confNotFound && !pathErr {
-			return fmt.Errorf("Configuration file cannot be loaded because of the error: %v \n", err)
+func (s *Settings) LoadFromFile(configPath string) error {
+	yamlFile, err := ioutil.ReadFile(configPath)
+	if err == nil {
+		if err = yaml.Unmarshal(yamlFile, s); err != nil {
+			return fmt.Errorf("Ошибка создания объекта настроек %v", err)
 		}
+	} else {
+		log.Warnf("Файл настроек не найден или не может быть загружен: #%v ", err)
 	}
+	if err := validateSettings(s); err != nil {
+		return fmt.Errorf("Ошибка валидации настроек программы %v", err)
+	}
+	return nil
+}
 
-	if err := viper.Unmarshal(s); err != nil {
+func validateSettings(s *Settings) error {
+	if strings.Trim(s.App.Port, " ") == "" {
+		return fmt.Errorf("Не задано значение порта приложения")
+	}
+	if s.App.ConnectionTimeToLiveSec <= 0 {
+		return fmt.Errorf("Время поддержания соединения должно быть положительным числом ")
+	}
+	if len(s.Kafka.Brokers) == 0 {
+		return fmt.Errorf("Не заданы адреса брокеров Kafka")
+	}
+	if strings.Trim(s.Kafka.OutputTopicName, " ") == "" {
+		return fmt.Errorf("Не задано имя топика для публикации данных")
+	}
+	return nil
+}
+
+func (s *Settings) LoadFromEnv() error {
+	if err := updateFromEnv(s); err != nil {
 		return fmt.Errorf("Ошибка создания объекта настроек %v", err)
 	}
-
-	if err := updateFromEnv(s); err != nil {
-		return fmt.Errorf("Ошибка инициализации объекта настроек %v", err)
+	if err := validateSettings(s); err != nil {
+		return fmt.Errorf("Ошибка валидации настроек программы %v", err)
 	}
 	return nil
 }
 
 func updateFromEnv(s *Settings) error {
+	ttl, err := strconv.Atoi(os.Getenv(makeKey(appConnectiontimetolivesec)))
+	if err != nil {
+		ttl = defaultTtl
+	}
 	envS := Settings{
 		App: AppSettings{
-			HostName:                viper.GetString(appHostname),
-			Port:                    viper.GetString(appPort),
-			ConnectionTimeToLiveSec: viper.GetInt(appConnectiontimetolivesec),
+			HostName:                os.Getenv(makeKey(appHostname)),
+			Port:                    os.Getenv(makeKey(appPort)),
+			ConnectionTimeToLiveSec: ttl,
 		},
 		Log: LogSettings{
-			Level: viper.GetString(logLevel),
+			Level: os.Getenv(makeKey(logLevel)),
 		},
 		Kafka: KafkaSettings{
-			Brokers:         strings.Split(viper.GetString(kafkaBrokers), ","),
-			OutputTopicName: viper.GetString(kafkaOutputtopicname),
+			Brokers:         strings.Split(os.Getenv(makeKey(kafkaBrokers)), ","),
+			OutputTopicName: os.Getenv(makeKey(kafkaOutputtopicname)),
 		},
 	}
 	return mergo.Merge(s, &envS)
+}
+
+func makeKey(suffix string) string {
+	return prefix + "_" + suffix
 }
 
 func (l *LogSettings) getLevel() log.Lvl {

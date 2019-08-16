@@ -14,5 +14,5 @@ require (
 	github.com/lib/pq v1.1.1
 	github.com/linkedin/goavro v1.0.5
 	github.com/segmentio/kafka-go v0.3.0
-	github.com/spf13/viper v1.4.0
+	gopkg.in/yaml.v2 v2.2.2
 )
