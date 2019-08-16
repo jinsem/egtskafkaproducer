@@ -37,8 +37,6 @@ func loadSettings() {
 		if err := settings.Load(os.Args[1]); err != nil {
 			logger.Fatalf("Application configuration cannot be parsed: %v", err)
 		}
-	} else {
-		logger.Fatalf("Path to configuration is not set")
 	}
 }
 
