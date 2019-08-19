@@ -7,4 +7,5 @@ log:
 kafka:
   Brokers:
     - "localhost:29092"
-  OutputTopicName: "egts_package_sample"
+  SchemaRegistryUrl: http://localhost:8081
+  OutputTopicName: "sensor_data"

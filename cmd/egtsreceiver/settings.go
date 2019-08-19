@@ -18,6 +18,7 @@ const appPort = "APP_PORT"
 const appConnectiontimetolivesec = "APP_CONNECTIONTIMETOLIVESEC"
 const logLevel = "LOG_LEVEL"
 const kafkaBrokers = "KAFKA_BROKERS"
+const kafkaSchemaRegistryUrl = "KAFKA_SCHEMAREGISTRYURL"
 const kafkaOutputtopicname = "KAFKA_OUTPUTTOPICNAME"
 const defaultTtl = 60
 
@@ -38,8 +39,9 @@ type LogSettings struct {
 }
 
 type KafkaSettings struct {
-	Brokers         []string `yaml:"Brokers"`
-	OutputTopicName string   `yaml:"OutputTopicName"`
+	Brokers           []string `yaml:"Brokers"`
+	SchemaRegistryUrl string   `yaml:"SchemaRegistryUrl"`
+	OutputTopicName   string   `yaml:"OutputTopicName"`
 }
 
 func (s *Settings) LoadFromFile(configPath string) error {
@@ -98,8 +100,9 @@ func updateFromEnv(s *Settings) error {
 			Level: os.Getenv(makeKey(logLevel)),
 		},
 		Kafka: KafkaSettings{
-			Brokers:         strings.Split(os.Getenv(makeKey(kafkaBrokers)), ","),
-			OutputTopicName: os.Getenv(makeKey(kafkaOutputtopicname)),
+			Brokers:           strings.Split(os.Getenv(makeKey(kafkaBrokers)), ","),
+			SchemaRegistryUrl: os.Getenv(makeKey(kafkaSchemaRegistryUrl)),
+			OutputTopicName:   os.Getenv(makeKey(kafkaOutputtopicname)),
 		},
 	}
 	return mergo.Merge(s, &envS)

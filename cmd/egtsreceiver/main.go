@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/labstack/gommon/log"
 	"net"
 	"os"
@@ -18,7 +17,6 @@ func main() {
 	logger = log.New("-")
 	logger.SetHeader("${time_rfc3339_nano} ${short_file}:${line} ${level} -${message}")
 	loadSettings()
-	fmt.Printf("%+v\n", settings)
 	logger.SetLevel(settings.Log.getLevel())
 	producer := EgtsKafkaPersister{}
 	if e := producer.Initialize(&settings.Kafka); e != nil {
