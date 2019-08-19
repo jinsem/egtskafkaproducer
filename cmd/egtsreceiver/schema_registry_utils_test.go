@@ -17,7 +17,7 @@ func TestAddSchemaRegistryHeader(t *testing.T) {
 	cnt := 0
 	for _, testSchemaID := range testSchemaIds {
 		var buf bytes.Buffer
-		addSchemaRegistryHeader(&buf, testSchemaID)
+		AddSchemaRegistryHeader(&buf, testSchemaID)
 		actual := buf.Bytes()
 		expected := expectedBytes[cnt]
 		if len(actual) != len(expected) {
