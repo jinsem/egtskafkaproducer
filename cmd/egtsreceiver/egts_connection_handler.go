@@ -99,7 +99,10 @@ func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
 			logger.Info("Тип пакета EGTS_PT_APPDATA")
 
 			for _, rec := range *pkg.ServicesFrameData.(*egts.ServiceDataSet) {
-				exportPacket := egtsschema.EgtsPackage{}
+				exportPacket := egtsschema.EgtsPackage{
+					AnalogSensors: &egtsschema.UnionArrayAnalogSensorNull{},
+					LiquidSensors: &egtsschema.UnionArrayLiquidSensorNull{},
+				}
 				readyToPersist = false
 				packetIDBytes := make([]byte, 4)
 
@@ -147,47 +150,44 @@ func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
 						exportPacket.Hdop = int32(subRecData.HorizontalDilutionOfPrecision)
 						exportPacket.Vdop = int32(subRecData.VerticalDilutionOfPrecision)
 						exportPacket.NavigationSystem = toNavigationSystem(subRecData.NavigationSystem)
-
 					case *egts.SrAdSensorsData:
-						readyToPersist = true
 						logger.Debugf("Разбор подзаписи EGTS_SR_AD_SENSORS_DATA")
-						analogSensors := egtsschema.UnionArrayAnalogSensorNull{}
+						readyToPersist = true
 						if subRecData.AnalogSensorFieldExists1 == "1" {
 							sensor := egtsschema.AnalogSensor{1, int32(subRecData.AnalogSensor1)}
-							analogSensors.ArrayAnalogSensor = append(analogSensors.ArrayAnalogSensor, &sensor)
+							exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
 						}
 						if subRecData.AnalogSensorFieldExists2 == "1" {
 							sensor := egtsschema.AnalogSensor{2, int32(subRecData.AnalogSensor2)}
-							analogSensors.ArrayAnalogSensor = append(analogSensors.ArrayAnalogSensor, &sensor)
+							exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
 						}
 						if subRecData.AnalogSensorFieldExists3 == "1" {
 							sensor := egtsschema.AnalogSensor{3, int32(subRecData.AnalogSensor3)}
-							analogSensors.ArrayAnalogSensor = append(analogSensors.ArrayAnalogSensor, &sensor)
+							exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
 						}
 						if subRecData.AnalogSensorFieldExists4 == "1" {
 							sensor := egtsschema.AnalogSensor{4, int32(subRecData.AnalogSensor4)}
-							analogSensors.ArrayAnalogSensor = append(analogSensors.ArrayAnalogSensor, &sensor)
+							exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
 						}
 						if subRecData.AnalogSensorFieldExists5 == "1" {
 							sensor := egtsschema.AnalogSensor{5, int32(subRecData.AnalogSensor5)}
-							analogSensors.ArrayAnalogSensor = append(analogSensors.ArrayAnalogSensor, &sensor)
+							exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
 						}
 						if subRecData.AnalogSensorFieldExists6 == "1" {
 							sensor := egtsschema.AnalogSensor{6, int32(subRecData.AnalogSensor6)}
-							analogSensors.ArrayAnalogSensor = append(analogSensors.ArrayAnalogSensor, &sensor)
+							exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
 						}
 						if subRecData.AnalogSensorFieldExists7 == "1" {
 							sensor := egtsschema.AnalogSensor{7, int32(subRecData.AnalogSensor7)}
-							analogSensors.ArrayAnalogSensor = append(analogSensors.ArrayAnalogSensor, &sensor)
+							exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
 						}
 						if subRecData.AnalogSensorFieldExists8 == "1" {
 							sensor := egtsschema.AnalogSensor{8, int32(subRecData.AnalogSensor8)}
-							analogSensors.ArrayAnalogSensor = append(analogSensors.ArrayAnalogSensor, &sensor)
+							exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
 						}
-						exportPacket.AnalogSensors = &analogSensors
 					case *egts.SrAbsCntrData:
-						readyToPersist = true
 						logger.Debugf("Разбор подзаписи EGTS_SR_ABS_CNTR_DATA")
+						readyToPersist = true
 
 						switch subRecData.CounterNumber {
 						case 110:
@@ -206,8 +206,8 @@ func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
 							exportPacket.PacketID = int64(binary.LittleEndian.Uint32(packetIDBytes))
 						}
 					case *egts.SrLiquidLevelSensor:
-						readyToPersist = true
 						logger.Debugf("Разбор подзаписи EGTS_SR_LIQUID_LEVEL_SENSOR")
+						readyToPersist = true
 						liquidSensors := egtsschema.UnionArrayLiquidSensorNull{}
 						valueMillimetres := int32(0)
 						valueLitres := int32(0)
@@ -230,7 +230,6 @@ func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
 				if readyToPersist {
 					exportPacket.Guid = fmt.Sprintf("%s", uuid.New())
 					exportPacket.Imei = deviceImei
-					verifyNullableAttributes(&exportPacket)
 					if err := producer.Produce(&exportPacket); err != nil {
 						logger.Error(err)
 					}
@@ -253,19 +252,6 @@ func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
 		case egts.PtResponsePacket:
 			logger.Debug("Тип пакета EGTS_PT_RESPONSE")
 		}
-	}
-}
-
-func verifyNullableAttributes(egtsPackage *egtsschema.EgtsPackage) {
-	if egtsPackage.AnalogSensors == nil {
-		sensors := egtsschema.UnionArrayAnalogSensorNull{}
-		egtsPackage.AnalogSensors = &sensors
-
-	}
-	if egtsPackage.LiquidSensors == nil {
-		sensors := egtsschema.UnionArrayLiquidSensorNull{}
-		egtsPackage.LiquidSensors = &sensors
-
 	}
 }
 
