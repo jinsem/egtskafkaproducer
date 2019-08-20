@@ -18,7 +18,7 @@ func main() {
 	logger.SetHeader("${time_rfc3339_nano} ${short_file}:${line} ${level} -${message}")
 	loadSettings()
 	logger.SetLevel(settings.Log.getLevel())
-	producer := EgtsKafkaPersister{}
+	producer := KafkaProducer{}
 	if e := producer.Initialize(&settings.Kafka); e != nil {
 		logger.Fatalf("Persister initialization failed: %v", e)
 	}
@@ -44,7 +44,7 @@ func loadSettings() {
 	}
 }
 
-func startTcpListener(srvAddress string, producer EgtsKafkaPersister) {
+func startTcpListener(srvAddress string, producer KafkaProducer) {
 	listener, err := net.Listen("tcp", srvAddress)
 	if err != nil {
 		logger.Fatalf("Cannot open TCP connection: %v", err)
@@ -62,7 +62,7 @@ func startTcpListener(srvAddress string, producer EgtsKafkaPersister) {
 		if err != nil {
 			logger.Errorf("Connection error: %v", err)
 		} else {
-			go handleReceivedvPackage(conn, producer)
+			go handleReceivedPackage(conn, producer)
 		}
 	}
 }

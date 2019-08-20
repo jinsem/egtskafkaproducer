@@ -9,13 +9,13 @@ import (
 	"github.com/segmentio/kafka-go"
 )
 
-type EgtsKafkaPersister struct {
+type KafkaProducer struct {
 	kafkaSettings *KafkaSettings
 	writer        *kafka.Writer
 	valueSchemaId uint32
 }
 
-func (p *EgtsKafkaPersister) Initialize(cfg *KafkaSettings) error {
+func (p *KafkaProducer) Initialize(cfg *KafkaSettings) error {
 	if cfg == nil {
 		return fmt.Errorf("Configuration is not set")
 	}
@@ -30,7 +30,7 @@ func (p *EgtsKafkaPersister) Initialize(cfg *KafkaSettings) error {
 	return err
 }
 
-func (p *EgtsKafkaPersister) initSchemaId() error {
+func (p *KafkaProducer) initSchemaId() error {
 	client, _ := schemaregistry.NewClient(p.kafkaSettings.SchemaRegistryUrl)
 	valueSubjectName := p.kafkaSettings.OutputTopicName + "-value"
 	schemaSource := egtsschema.EgtsPackage{}
@@ -41,7 +41,7 @@ func (p *EgtsKafkaPersister) initSchemaId() error {
 	return err
 }
 
-func (c *EgtsKafkaPersister) getKafkaWriter(cfg *KafkaSettings) *kafka.Writer {
+func (c *KafkaProducer) getKafkaWriter(cfg *KafkaSettings) *kafka.Writer {
 	return kafka.NewWriter(kafka.WriterConfig{
 		Brokers:  cfg.Brokers,
 		Topic:    cfg.OutputTopicName,
@@ -49,7 +49,7 @@ func (c *EgtsKafkaPersister) getKafkaWriter(cfg *KafkaSettings) *kafka.Writer {
 	})
 }
 
-func (p *EgtsKafkaPersister) Produce(egtsPackage *egtsschema.EgtsPackage) error {
+func (p *KafkaProducer) Produce(egtsPackage *egtsschema.EgtsPackage) error {
 	logger.Debug("Processing message... ")
 	var buf bytes.Buffer
 	egtsPackage.Schema()
@@ -66,7 +66,7 @@ func (p *EgtsKafkaPersister) Produce(egtsPackage *egtsschema.EgtsPackage) error 
 	return err
 }
 
-func (p *EgtsKafkaPersister) Close() error {
+func (p *KafkaProducer) Close() error {
 	err := p.writer.Close()
 	logger.Debug("Kafka connector stopped ")
 	return err

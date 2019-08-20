@@ -15,10 +15,11 @@ import (
 const (
 	egtsPcOk        = 0
 	headerLen       = 10
+	srcLen          = 2
 	protocolVersion = 0x01
 )
 
-func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
+func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
 
 	var (
 		readyToPersist    bool
@@ -56,7 +57,7 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
 			bodyLen := binary.LittleEndian.Uint16(headerBuf[5:7])
 			pkgLen := uint16(headerBuf[3])
 			if bodyLen > 0 {
-				pkgLen += bodyLen + 2
+				pkgLen += bodyLen + srcLen
 			}
 			buf := make([]byte, pkgLen-headerLen)
 			if _, err := io.ReadFull(conn, buf); err != nil {
@@ -131,15 +132,14 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
 						logger.Debugf("Разбор подзаписи EGTS_SR_RESPONSE")
 						goto Received
 					case *egts.SrPosData:
-						readyToPersist = true
 						logger.Debugf("Разбор подзаписи EGTS_SR_POS_DATA")
+						readyToPersist = true
 						exportPacket.MeasurementTimestamp = subRecData.NavigationTime.Unix()
 						exportPacket.ReceivedTimestamp = time.Now().UTC().Unix()
 						exportPacket.Latitude = subRecData.Latitude
 						exportPacket.Longitude = subRecData.Longitude
 						exportPacket.Speed = int32(subRecData.Speed)
 						exportPacket.Direction = int32(subRecData.Direction)
-						exportPacket.Guid = fmt.Sprintf("%s", uuid.New())
 					case *egts.SrExtPosData:
 						logger.Debugf("Разбор подзаписи EGTS_SR_EXT_POS_DATA")
 						exportPacket.NumOfSatelites = int32(subRecData.Satellites)
@@ -228,6 +228,7 @@ func handleReceivedvPackage(conn net.Conn, producer EgtsKafkaPersister) {
 				}
 
 				if readyToPersist {
+					exportPacket.Guid = fmt.Sprintf("%s", uuid.New())
 					exportPacket.Imei = deviceImei
 					verifyNullableAttributes(&exportPacket)
 					if err := producer.Produce(&exportPacket); err != nil {
