@@ -1,10 +1,11 @@
-package main
+package common
 
 import (
 	"bytes"
 	"context"
 	"fmt"
 	egtsschema "github.com/jinsem/egtskafkaproducer/pkg/avro"
+	"github.com/labstack/gommon/log"
 	"github.com/landoop/schema-registry"
 	"github.com/segmentio/kafka-go"
 )
@@ -13,19 +14,21 @@ type KafkaProducer struct {
 	kafkaSettings *KafkaSettings
 	writer        *kafka.Writer
 	valueSchemaId uint32
+	logger        *log.Logger
 }
 
-func (p *KafkaProducer) Initialize(cfg *KafkaSettings) error {
+func (p *KafkaProducer) Initialize(cfg *KafkaSettings, logger *log.Logger) error {
 	if cfg == nil {
 		return fmt.Errorf("Configuration is not set")
 	}
 	p.kafkaSettings = cfg
 	p.writer = p.getKafkaWriter(cfg)
 	err := p.initSchemaId()
+	p.logger = logger
 	if err == nil {
-		logger.Debug("Kafka persister готов к работе")
+		p.logger.Debug("Kafka persister готов к работе")
 	} else {
-		logger.Error("Ошибка получения идентификатора схемы")
+		p.logger.Error("Ошибка получения идентификатора схемы")
 	}
 	return err
 }
@@ -50,7 +53,7 @@ func (c *KafkaProducer) getKafkaWriter(cfg *KafkaSettings) *kafka.Writer {
 }
 
 func (p *KafkaProducer) Produce(egtsPackage *egtsschema.EgtsPackage) error {
-	logger.Debug("Processing message... ")
+	p.logger.Debug("Processing message... ")
 	var buf bytes.Buffer
 	egtsPackage.Schema()
 	AddSchemaRegistryHeader(&buf, p.valueSchemaId)
@@ -68,6 +71,6 @@ func (p *KafkaProducer) Produce(egtsPackage *egtsschema.EgtsPackage) error {
 
 func (p *KafkaProducer) Close() error {
 	err := p.writer.Close()
-	logger.Debug("Kafka connector stopped ")
+	p.logger.Debug("Kafka connector stopped ")
 	return err
 }

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/google/uuid"
 	egtsschema "github.com/jinsem/egtskafkaproducer/pkg/avro"
+	"github.com/jinsem/egtskafkaproducer/pkg/common"
 	egts "github.com/kuznetsovin/egts/pkg/egtslib"
 	"io"
 	"net"
@@ -20,7 +21,7 @@ const (
 	existsFlag      = "1"
 )
 
-func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
+func handleReceivedPackage(conn net.Conn, producer common.KafkaProducer) {
 
 	var (
 		readyToPersist    bool
@@ -38,7 +39,7 @@ func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
 		srResultCodePkg = nil
 		recvPacket = nil
 
-		connTimer := time.NewTimer(settings.App.getConnectionTimeToLiveSec())
+		connTimer := time.NewTimer(settings.App.GetConnectionTimeToLiveSec())
 
 		headerBuf := make([]byte, headerLen)
 
@@ -46,7 +47,7 @@ func handleReceivedPackage(conn net.Conn, producer KafkaProducer) {
 
 		switch err {
 		case nil:
-			connTimer.Reset(settings.App.getConnectionTimeToLiveSec())
+			connTimer.Reset(settings.App.GetConnectionTimeToLiveSec())
 
 			if headerBuf[0] != protocolVersion {
 				_ = conn.Close()

@@ -1,4 +1,4 @@
-package main
+package common
 
 import (
 	"github.com/google/go-cmp/cmp"
@@ -24,7 +24,9 @@ kafka:
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(file.Name())
+	defer func() {
+		_ = os.Remove(file.Name())
+	}()
 
 	if _, err = file.WriteString(configuration); err != nil {
 		t.Fatal(err)

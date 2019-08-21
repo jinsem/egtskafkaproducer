@@ -1,4 +1,4 @@
-package main
+package common
 
 import (
 	"fmt"
@@ -112,7 +112,7 @@ func makeKey(suffix string) string {
 	return prefix + "_" + suffix
 }
 
-func (l *LogSettings) getLevel() log.Lvl {
+func (l *LogSettings) GetLevel() log.Lvl {
 	var lvl log.Lvl
 
 	switch l.Level {
@@ -134,10 +134,10 @@ func (l *LogSettings) getLevel() log.Lvl {
 	return lvl
 }
 
-func (a *AppSettings) getFullAddress() string {
+func (a *AppSettings) GetFullAddress() string {
 	return a.HostName + ":" + a.Port
 }
 
-func (s *AppSettings) getConnectionTimeToLiveSec() time.Duration {
+func (s *AppSettings) GetConnectionTimeToLiveSec() time.Duration {
 	return time.Duration(s.ConnectionTimeToLiveSec) * time.Second
 }

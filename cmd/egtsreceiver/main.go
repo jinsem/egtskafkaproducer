@@ -1,13 +1,14 @@
 package main
 
 import (
+	producer2 "github.com/jinsem/egtskafkaproducer/pkg/common"
 	"github.com/labstack/gommon/log"
 	"net"
 	"os"
 )
 
 var (
-	settings Settings
+	settings producer2.Settings
 	logger   *log.Logger
 )
 
@@ -17,9 +18,9 @@ func main() {
 	logger = log.New("-")
 	logger.SetHeader("${time_rfc3339_nano} ${short_file}:${line} ${level} -${message}")
 	loadSettings()
-	logger.SetLevel(settings.Log.getLevel())
-	producer := KafkaProducer{}
-	if e := producer.Initialize(&settings.Kafka); e != nil {
+	logger.SetLevel(settings.Log.GetLevel())
+	producer := producer2.KafkaProducer{}
+	if e := producer.Initialize(&settings.Kafka, logger); e != nil {
 		logger.Fatalf("Persister initialization failed: %v", e)
 	}
 	defer func() {
@@ -28,7 +29,7 @@ func main() {
 			logger.Fatal(err)
 		}
 	}()
-	startTcpListener(settings.App.getFullAddress(), producer)
+	startTcpListener(settings.App.GetFullAddress(), producer)
 
 }
 
@@ -44,7 +45,7 @@ func loadSettings() {
 	}
 }
 
-func startTcpListener(srvAddress string, producer KafkaProducer) {
+func startTcpListener(srvAddress string, producer producer2.KafkaProducer) {
 	listener, err := net.Listen("tcp", srvAddress)
 	if err != nil {
 		logger.Fatalf("Cannot open TCP connection: %v", err)
