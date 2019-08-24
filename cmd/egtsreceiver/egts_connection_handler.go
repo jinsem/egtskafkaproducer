@@ -102,8 +102,17 @@ func handleReceivedPackage(conn net.Conn, producer common.KafkaProducer) {
 
 			for _, rec := range *pkg.ServicesFrameData.(*egts.ServiceDataSet) {
 				exportPacket := egtsschema.EgtsPackage{
-					AnalogSensors: &egtsschema.UnionArrayAnalogSensorNull{},
-					LiquidSensors: &egtsschema.UnionArrayLiquidSensorNull{},
+					AnalogSensors:    &egtsschema.UnionArrayAnalogSensorNull{},
+					LiquidSensors:    &egtsschema.UnionArrayLiquidSensorNull{},
+					Latitude:         &egtsschema.UnionNullDouble{},
+					Longitude:        &egtsschema.UnionNullDouble{},
+					Speed:            &egtsschema.UnionNullInt{},
+					Direction:        &egtsschema.UnionNullInt{},
+					NumOfSatelites:   &egtsschema.UnionNullInt{},
+					Pdop:             &egtsschema.UnionNullInt{},
+					Hdop:             &egtsschema.UnionNullInt{},
+					Vdop:             &egtsschema.UnionNullInt{},
+					NavigationSystem: egtsschema.NavigationSystem(egtsschema.NavigationSystemUknown),
 				}
 				readyToPersist = false
 				packetIDBytes := make([]byte, 4)
@@ -213,44 +222,18 @@ func handleReceivedPackage(conn net.Conn, producer common.KafkaProducer) {
 func setSrPosData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrPosData) {
 	exportPacket.MeasurementTimestamp = subRecData.NavigationTime.Unix()
 	exportPacket.ReceivedTimestamp = time.Now().UTC().Unix()
-	exportPacket.Latitude = &egtsschema.UnionNullDouble{Double: subRecData.Latitude}
-	exportPacket.Longitude = &egtsschema.UnionNullDouble{Double: subRecData.Longitude}
-	exportPacket.Speed = &egtsschema.UnionNullInt{Int: int32(subRecData.Speed)}
-	exportPacket.Direction = &egtsschema.UnionNullInt{Int: int32(subRecData.Direction)}
+	setUnionNullDoubleVal(subRecData.Latitude, exportPacket.Latitude)
+	setUnionNullDoubleVal(subRecData.Longitude, exportPacket.Longitude)
+	setUnionNullInt(int32(subRecData.Speed), exportPacket.Speed)
+	setUnionNullInt(int32(subRecData.Direction), exportPacket.Direction)
 }
 
 func setSrExtPosData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrExtPosData) {
-	exportPacket.NumOfSatelites = &egtsschema.UnionNullInt{Int: int32(subRecData.Satellites)}
-	exportPacket.Pdop = &egtsschema.UnionNullInt{Int: int32(subRecData.PositionDilutionOfPrecision)}
-	exportPacket.Hdop = &egtsschema.UnionNullInt{Int: int32(subRecData.HorizontalDilutionOfPrecision)}
-	exportPacket.Vdop = &egtsschema.UnionNullInt{Int: int32(subRecData.VerticalDilutionOfPrecision)}
+	setUnionNullInt(int32(subRecData.Satellites), exportPacket.NumOfSatelites)
+	setUnionNullInt(int32(subRecData.PositionDilutionOfPrecision), exportPacket.Pdop)
+	setUnionNullInt(int32(subRecData.HorizontalDilutionOfPrecision), exportPacket.Hdop)
+	setUnionNullInt(int32(subRecData.VerticalDilutionOfPrecision), exportPacket.Vdop)
 	exportPacket.NavigationSystem = toNavigationSystem(subRecData.NavigationSystem)
-}
-
-func toNavigationSystem(egtsNavSystemCode uint16) egtsschema.NavigationSystem {
-	switch egtsNavSystemCode {
-	// Glonass
-	case 1:
-		return egtsschema.NavigationSystem(egtsschema.NavigationSystemGLONASS)
-	// GPS
-	case 2:
-		return egtsschema.NavigationSystem(egtsschema.NavigationSystemGPS)
-	// Galileo
-	case 4:
-		return egtsschema.NavigationSystem(egtsschema.NavigationSystemGalileo)
-	// Compass
-	case 8:
-		return egtsschema.NavigationSystem(egtsschema.NavigationSystemCompass)
-	// Beidou
-	case 16:
-		return egtsschema.NavigationSystem(egtsschema.NavigationSystemBeidou)
-	// DORIS
-	case 32:
-		return egtsschema.NavigationSystem(egtsschema.NavigationSystemDORIS)
-	// unknown
-	default: // including 0
-		return egtsschema.NavigationSystem(egtsschema.NavigationSystemUknown)
-	}
 }
 
 func setSrAdSensorsData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrAdSensorsData) {

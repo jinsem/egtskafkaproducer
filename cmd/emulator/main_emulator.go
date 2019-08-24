@@ -6,13 +6,15 @@ import (
 	egtsschema "github.com/jinsem/egtskafkaproducer/pkg/avro"
 	"github.com/jinsem/egtskafkaproducer/pkg/common"
 	"github.com/labstack/gommon/log"
+	"math/rand"
 	"time"
 )
 
 var (
 	logger              *log.Logger
 	allowedClientIds    = []int64{1, 2, 3, 4}
-	allowedInputNumbers = []int64{1, 2, 3, 4}
+	allowedClientImeis  = []string{"111111111", "222222222222", "333333333333", "444444444444"}
+	allowedInputNumbers = []int{1, 2}
 )
 
 func main() {
@@ -26,50 +28,55 @@ func main() {
 	}
 	kafkaProducer := common.KafkaProducer{}
 	_ = kafkaProducer.Initialize(&settings, logger)
-	for i := 0; i < 2; i++ {
-		fakePackege := makEgtsPackage(i)
+	for i := 0; i < 1; i++ {
+		fakePackege := makEgtsPackage()
 		_ = kafkaProducer.Produce(&fakePackege)
 	}
 	_ = kafkaProducer.Close()
 }
 
-func makEgtsPackage(i int) egtsschema.EgtsPackage {
+func makEgtsPackage() egtsschema.EgtsPackage {
 	result := egtsschema.EgtsPackage{
 		AnalogSensors: &egtsschema.UnionArrayAnalogSensorNull{},
 		LiquidSensors: &egtsschema.UnionArrayLiquidSensorNull{},
 	}
-	result.ClinetId = int64(i)
-	result.PacketID = int64(i)
+	rndClientId, rndImei := getRandomClientIdAndImei()
+	result.ClinetId = rndClientId
+	result.PacketID = time.Now().UnixNano()
 	result.Guid = fmt.Sprintf("%s", uuid.New())
-	result.Imei = fmt.Sprintf("imei %d", i)
+	result.Imei = &egtsschema.UnionNullString{String: rndImei}
 
-	result.MeasurementTimestamp = 12345
-	result.ReceivedTimestamp = time.Now().UTC().Unix()
-	result.Latitude = 12.9
-	result.Longitude = 11.5
-	result.Speed = int32(50)
-	result.Direction = int32(55)
-	result.NumOfSatelites = int32(30)
-	result.Pdop = int32(11)
-	result.Hdop = int32(12)
-	result.Vdop = int32(13)
+	curTimeStamp := time.Now().UTC().Unix()
+	result.MeasurementTimestamp = curTimeStamp
+	result.ReceivedTimestamp = curTimeStamp - 1000
+	result.Latitude = &egtsschema.UnionNullDouble{Double: 12.9, UnionType: egtsschema.UnionNullDoubleTypeEnumDouble}
+	result.Longitude = &egtsschema.UnionNullDouble{Double: 11.5, UnionType: egtsschema.UnionNullDoubleTypeEnumDouble}
+	result.Speed = &egtsschema.UnionNullInt{Int: int32(0), UnionType: egtsschema.UnionNullIntTypeEnumInt}
+	result.Direction = &egtsschema.UnionNullInt{Int: int32(0), UnionType: egtsschema.UnionNullIntTypeEnumInt}
+	result.NumOfSatelites = &egtsschema.UnionNullInt{Int: int32(10), UnionType: egtsschema.UnionNullIntTypeEnumInt}
+	result.Pdop = &egtsschema.UnionNullInt{Int: int32(1), UnionType: egtsschema.UnionNullIntTypeEnumInt}
+	result.Hdop = &egtsschema.UnionNullInt{Int: int32(2), UnionType: egtsschema.UnionNullIntTypeEnumInt}
+	result.Vdop = &egtsschema.UnionNullInt{Int: int32(3), UnionType: egtsschema.UnionNullIntTypeEnumInt}
 	result.NavigationSystem = egtsschema.NavigationSystem(egtsschema.NavigationSystemGLONASS)
 
-	sensor1 := egtsschema.AnalogSensor{1, int32(100)}
-	result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor1)
-	sensor2 := egtsschema.AnalogSensor{2, int32(200)}
-	result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor2)
-	sensor3 := egtsschema.AnalogSensor{3, int32(300)}
-	result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor3)
-	sensor4 := egtsschema.AnalogSensor{4, int32(400)}
-	result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor4)
-	sensor5 := egtsschema.AnalogSensor{5, int32(500)}
-	result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor5)
-	sensor6 := egtsschema.AnalogSensor{6, int32(600)}
-	result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor6)
-	sensor7 := egtsschema.AnalogSensor{7, int32(700)}
-	result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor7)
-	sensor8 := egtsschema.AnalogSensor{8, int32(800)}
-	result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor8)
+	sensCnt := getRandomInputsCount()
+	for i := 0; i < sensCnt; i++ {
+		sensor := egtsschema.AnalogSensor{int32(i), getRandomInpitValue()}
+		result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor)
+	}
 	return result
+}
+
+func getRandomClientIdAndImei() (int64, string) {
+	rndIdx := rand.Intn(len(allowedClientIds))
+	return allowedClientIds[rndIdx], allowedClientImeis[rndIdx]
+}
+
+func getRandomInputsCount() int {
+	rndIdx := rand.Intn(len(allowedInputNumbers))
+	return allowedInputNumbers[rndIdx]
+}
+
+func getRandomInpitValue() int32 {
+	return rand.Int31n(10000)
 }
