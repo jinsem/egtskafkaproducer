@@ -4,7 +4,7 @@
   "name": "EgtsPackage",
   "fields": [
     {"name": "imei",
-      "type": "string",
+      "type": ["null", "string"],
       "doc": "IMEI of the device that sent this data"
     },
     {"name": "guid",
@@ -29,31 +29,31 @@
       "doc": "Timestamp of receiveing the data from device"
     },
     {"name": "latitude",
-      "type": "double",
+      "type": ["null", "double"],
       "doc": "Device's latitude at the moment of measurement"
     },
     {"name": "longitude",
-      "type": "double",
+      "type": ["null", "double"],
       "doc": "Device's longitude at the moment of measurement"
     },
     {"name": "speed",
-      "type": "int",
+      "type": ["null", "int"],
       "doc": "Device's speed at the moment of measurement"
     },
     {"name": "pdop",
-      "type": "int",
+      "type": ["null", "int"],
       "doc": "Position dilution of precision"
     },
     {"name": "hdop",
-      "type": "int",
+      "type": ["null", "int"],
       "doc": "Horizontal dilution of precision"
     },
     {"name": "vdop",
-      "type": "int",
+      "type": ["null", "int"],
       "doc": "Vertical dilution of precision"
     },
     {"name": "numOfSatelites",
-      "type": "int",
+      "type": ["null", "int"],
       "doc": "Number of satelites that were used to detect device position"
     },
     {"name": "navigationSystem",
@@ -66,7 +66,7 @@
       "documentation": "Navigation system identifier"
     },
     {"name": "direction",
-      "type": "int",
+      "type": ["null", "int"],
       "doc": "Angle (in degrees) between north meridian and device's moving direction (clockwise). Value is in [0, 359] degrees range"
     },
     {"name": "analogSensors",

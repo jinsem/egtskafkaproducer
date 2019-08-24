@@ -145,7 +145,7 @@ func writeDouble(r float64, w io.Writer) error {
 
 func writeEgtsPackage(r *EgtsPackage, w io.Writer) error {
 	var err error
-	err = writeString(r.Imei, w)
+	err = writeUnionNullString(r.Imei, w)
 	if err != nil {
 		return err
 	}
@@ -169,31 +169,31 @@ func writeEgtsPackage(r *EgtsPackage, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writeDouble(r.Latitude, w)
+	err = writeUnionNullDouble(r.Latitude, w)
 	if err != nil {
 		return err
 	}
-	err = writeDouble(r.Longitude, w)
+	err = writeUnionNullDouble(r.Longitude, w)
 	if err != nil {
 		return err
 	}
-	err = writeInt(r.Speed, w)
+	err = writeUnionNullInt(r.Speed, w)
 	if err != nil {
 		return err
 	}
-	err = writeInt(r.Pdop, w)
+	err = writeUnionNullInt(r.Pdop, w)
 	if err != nil {
 		return err
 	}
-	err = writeInt(r.Hdop, w)
+	err = writeUnionNullInt(r.Hdop, w)
 	if err != nil {
 		return err
 	}
-	err = writeInt(r.Vdop, w)
+	err = writeUnionNullInt(r.Vdop, w)
 	if err != nil {
 		return err
 	}
-	err = writeInt(r.NumOfSatelites, w)
+	err = writeUnionNullInt(r.NumOfSatelites, w)
 	if err != nil {
 		return err
 	}
@@ -201,7 +201,7 @@ func writeEgtsPackage(r *EgtsPackage, w io.Writer) error {
 	if err != nil {
 		return err
 	}
-	err = writeInt(r.Direction, w)
+	err = writeUnionNullInt(r.Direction, w)
 	if err != nil {
 		return err
 	}
@@ -302,6 +302,51 @@ func writeUnionArrayLiquidSensorNull(r *UnionArrayLiquidSensorNull, w io.Writer)
 
 	}
 	return fmt.Errorf("invalid value for *UnionArrayLiquidSensorNull")
+}
+
+func writeUnionNullDouble(r *UnionNullDouble, w io.Writer) error {
+	err := writeLong(int64(r.UnionType), w)
+	if err != nil {
+		return err
+	}
+	switch r.UnionType {
+	case UnionNullDoubleTypeEnumNull:
+		return writeNull(r.Null, w)
+	case UnionNullDoubleTypeEnumDouble:
+		return writeDouble(r.Double, w)
+
+	}
+	return fmt.Errorf("invalid value for *UnionNullDouble")
+}
+
+func writeUnionNullInt(r *UnionNullInt, w io.Writer) error {
+	err := writeLong(int64(r.UnionType), w)
+	if err != nil {
+		return err
+	}
+	switch r.UnionType {
+	case UnionNullIntTypeEnumNull:
+		return writeNull(r.Null, w)
+	case UnionNullIntTypeEnumInt:
+		return writeInt(r.Int, w)
+
+	}
+	return fmt.Errorf("invalid value for *UnionNullInt")
+}
+
+func writeUnionNullString(r *UnionNullString, w io.Writer) error {
+	err := writeLong(int64(r.UnionType), w)
+	if err != nil {
+		return err
+	}
+	switch r.UnionType {
+	case UnionNullStringTypeEnumNull:
+		return writeNull(r.Null, w)
+	case UnionNullStringTypeEnumString:
+		return writeString(r.String, w)
+
+	}
+	return fmt.Errorf("invalid value for *UnionNullString")
 }
 
 type ArrayLiquidSensorWrapper []*LiquidSensor

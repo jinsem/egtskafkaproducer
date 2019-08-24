@@ -10,7 +10,9 @@ import (
 )
 
 var (
-	logger *log.Logger
+	logger              *log.Logger
+	allowedClientIds    = []int64{1, 2, 3, 4}
+	allowedInputNumbers = []int64{1, 2, 3, 4}
 )
 
 func main() {

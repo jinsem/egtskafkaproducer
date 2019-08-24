@@ -175,7 +175,7 @@ func handleReceivedPackage(conn net.Conn, producer common.KafkaProducer) {
 
 				if readyToPersist {
 					exportPacket.Guid = fmt.Sprintf("%s", uuid.New())
-					exportPacket.Imei = deviceImei
+					exportPacket.Imei = &egtsschema.UnionNullString{String: deviceImei}
 					if err := producer.Produce(&exportPacket); err != nil {
 						logger.Error(err)
 					}
@@ -213,17 +213,17 @@ func handleReceivedPackage(conn net.Conn, producer common.KafkaProducer) {
 func setSrPosData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrPosData) {
 	exportPacket.MeasurementTimestamp = subRecData.NavigationTime.Unix()
 	exportPacket.ReceivedTimestamp = time.Now().UTC().Unix()
-	exportPacket.Latitude = subRecData.Latitude
-	exportPacket.Longitude = subRecData.Longitude
-	exportPacket.Speed = int32(subRecData.Speed)
-	exportPacket.Direction = int32(subRecData.Direction)
+	exportPacket.Latitude = &egtsschema.UnionNullDouble{Double: subRecData.Latitude}
+	exportPacket.Longitude = &egtsschema.UnionNullDouble{Double: subRecData.Longitude}
+	exportPacket.Speed = &egtsschema.UnionNullInt{Int: int32(subRecData.Speed)}
+	exportPacket.Direction = &egtsschema.UnionNullInt{Int: int32(subRecData.Direction)}
 }
 
 func setSrExtPosData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrExtPosData) {
-	exportPacket.NumOfSatelites = int32(subRecData.Satellites)
-	exportPacket.Pdop = int32(subRecData.PositionDilutionOfPrecision)
-	exportPacket.Hdop = int32(subRecData.HorizontalDilutionOfPrecision)
-	exportPacket.Vdop = int32(subRecData.VerticalDilutionOfPrecision)
+	exportPacket.NumOfSatelites = &egtsschema.UnionNullInt{Int: int32(subRecData.Satellites)}
+	exportPacket.Pdop = &egtsschema.UnionNullInt{Int: int32(subRecData.PositionDilutionOfPrecision)}
+	exportPacket.Hdop = &egtsschema.UnionNullInt{Int: int32(subRecData.HorizontalDilutionOfPrecision)}
+	exportPacket.Vdop = &egtsschema.UnionNullInt{Int: int32(subRecData.VerticalDilutionOfPrecision)}
 	exportPacket.NavigationSystem = toNavigationSystem(subRecData.NavigationSystem)
 }
 
