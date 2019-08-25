@@ -29,14 +29,14 @@ func main() {
 	kafkaProducer := common.KafkaProducer{}
 	_ = kafkaProducer.Initialize(&settings, logger)
 	for i := 0; i < 1; i++ {
-		fakePackege := makEgtsPackage()
+		fakePackege := makMeasurementPackage()
 		_ = kafkaProducer.Produce(&fakePackege)
 	}
 	_ = kafkaProducer.Close()
 }
 
-func makEgtsPackage() egtsschema.EgtsPackage {
-	result := egtsschema.EgtsPackage{
+func makMeasurementPackage() egtsschema.MeasurementPackage {
+	result := egtsschema.MeasurementPackage{
 		AnalogSensors: &egtsschema.UnionArrayAnalogSensorNull{},
 		LiquidSensors: &egtsschema.UnionArrayLiquidSensorNull{},
 	}

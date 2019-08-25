@@ -36,7 +36,7 @@ func (p *KafkaProducer) Initialize(cfg *KafkaSettings, logger *log.Logger) error
 func (p *KafkaProducer) initSchemaId() error {
 	client, _ := schemaregistry.NewClient(p.kafkaSettings.SchemaRegistryUrl)
 	valueSubjectName := p.kafkaSettings.OutputTopicName + "-value"
-	schemaSource := egtsschema.EgtsPackage{}
+	schemaSource := egtsschema.MeasurementPackage{}
 	schemaId, err := RegisterSchemaIfNotExists(client, valueSubjectName, schemaSource.Schema())
 	if err == nil {
 		p.valueSchemaId = uint32(schemaId)
@@ -52,12 +52,12 @@ func (c *KafkaProducer) getKafkaWriter(cfg *KafkaSettings) *kafka.Writer {
 	})
 }
 
-func (p *KafkaProducer) Produce(egtsPackage *egtsschema.EgtsPackage) error {
+func (p *KafkaProducer) Produce(measurementPackage *egtsschema.MeasurementPackage) error {
 	p.logger.Debug("Processing message... ")
 	var buf bytes.Buffer
-	egtsPackage.Schema()
+	measurementPackage.Schema()
 	AddSchemaRegistryHeader(&buf, p.valueSchemaId)
-	err := egtsPackage.Serialize(&buf)
+	err := measurementPackage.Serialize(&buf)
 	if err == nil {
 		innerPkg := buf.Bytes()
 		kafkaMsg := kafka.Message{

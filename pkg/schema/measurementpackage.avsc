@@ -1,7 +1,7 @@
 {
   "type": "record",
   "namespace": "com.projavt.ecology.schema",
-  "name": "EgtsPackage",
+  "name": "MeasurementPackage",
   "fields": [
     {"name": "imei",
       "type": ["null", "string"],

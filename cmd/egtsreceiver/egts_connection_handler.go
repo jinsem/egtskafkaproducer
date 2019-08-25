@@ -101,7 +101,7 @@ func handleReceivedPackage(conn net.Conn, producer common.KafkaProducer) {
 			logger.Info("Тип пакета EGTS_PT_APPDATA")
 
 			for _, rec := range *pkg.ServicesFrameData.(*egts.ServiceDataSet) {
-				exportPacket := egtsschema.EgtsPackage{
+				exportPacket := egtsschema.MeasurementPackage{
 					AnalogSensors:    &egtsschema.UnionArrayAnalogSensorNull{},
 					LiquidSensors:    &egtsschema.UnionArrayLiquidSensorNull{},
 					Latitude:         &egtsschema.UnionNullDouble{},
@@ -219,7 +219,7 @@ func handleReceivedPackage(conn net.Conn, producer common.KafkaProducer) {
 	}
 }
 
-func setSrPosData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrPosData) {
+func setSrPosData(exportPacket *egtsschema.MeasurementPackage, subRecData *egts.SrPosData) {
 	exportPacket.MeasurementTimestamp = subRecData.NavigationTime.Unix()
 	exportPacket.ReceivedTimestamp = time.Now().UTC().Unix()
 	setUnionNullDoubleVal(subRecData.Latitude, exportPacket.Latitude)
@@ -228,7 +228,7 @@ func setSrPosData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrPosDa
 	setUnionNullInt(int32(subRecData.Direction), exportPacket.Direction)
 }
 
-func setSrExtPosData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrExtPosData) {
+func setSrExtPosData(exportPacket *egtsschema.MeasurementPackage, subRecData *egts.SrExtPosData) {
 	setUnionNullInt(int32(subRecData.Satellites), exportPacket.NumOfSatelites)
 	setUnionNullInt(int32(subRecData.PositionDilutionOfPrecision), exportPacket.Pdop)
 	setUnionNullInt(int32(subRecData.HorizontalDilutionOfPrecision), exportPacket.Hdop)
@@ -236,7 +236,7 @@ func setSrExtPosData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrEx
 	exportPacket.NavigationSystem = toNavigationSystem(subRecData.NavigationSystem)
 }
 
-func setSrAdSensorsData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrAdSensorsData) {
+func setSrAdSensorsData(exportPacket *egtsschema.MeasurementPackage, subRecData *egts.SrAdSensorsData) {
 	if subRecData.AnalogSensorFieldExists1 == existsFlag {
 		sensor := egtsschema.AnalogSensor{1, int32(subRecData.AnalogSensor1)}
 		exportPacket.AnalogSensors.ArrayAnalogSensor = append(exportPacket.AnalogSensors.ArrayAnalogSensor, &sensor)
@@ -271,7 +271,7 @@ func setSrAdSensorsData(exportPacket *egtsschema.EgtsPackage, subRecData *egts.S
 	}
 }
 
-func setSrLiquidLevelSensor(exportPacket *egtsschema.EgtsPackage, subRecData *egts.SrLiquidLevelSensor) {
+func setSrLiquidLevelSensor(exportPacket *egtsschema.MeasurementPackage, subRecData *egts.SrLiquidLevelSensor) {
 	valueMillimetres := int32(0)
 	valueLitres := int32(0)
 	switch subRecData.LiquidLevelSensorValueUnit {
