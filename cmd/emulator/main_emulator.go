@@ -11,10 +11,10 @@ import (
 )
 
 var (
-	logger              *log.Logger
-	allowedClientIds    = []int64{1, 2, 3, 4}
-	allowedClientImeis  = []string{"111111111", "222222222222", "333333333333", "444444444444"}
-	allowedInputNumbers = []int{1, 2}
+	logger             *log.Logger
+	allowedClientIds   = []int64{1, 2, 3, 4}
+	allowedClientImeis = []string{"111111111", "222222222222", "333333333333", "444444444444"}
+	maxInputNumber     = 8
 )
 
 func main() {
@@ -59,8 +59,7 @@ func makMeasurementPackage() egtsschema.MeasurementPackage {
 	result.Vdop = &egtsschema.UnionNullInt{Int: int32(3), UnionType: egtsschema.UnionNullIntTypeEnumInt}
 	result.NavigationSystem = egtsschema.NavigationSystem(egtsschema.NavigationSystemGLONASS)
 
-	sensCnt := getRandomInputsCount()
-	for i := 0; i < sensCnt; i++ {
+	for i := 1; i <= maxInputNumber; i++ {
 		sensor := egtsschema.AnalogSensor{int32(i), getRandomInpitValue()}
 		result.AnalogSensors.ArrayAnalogSensor = append(result.AnalogSensors.ArrayAnalogSensor, &sensor)
 	}
@@ -70,11 +69,6 @@ func makMeasurementPackage() egtsschema.MeasurementPackage {
 func getRandomClientIdAndImei() (int64, string) {
 	rndIdx := rand.Intn(len(allowedClientIds))
 	return allowedClientIds[rndIdx], allowedClientImeis[rndIdx]
-}
-
-func getRandomInputsCount() int {
-	rndIdx := rand.Intn(len(allowedInputNumbers))
-	return allowedInputNumbers[rndIdx]
 }
 
 func getRandomInpitValue() int32 {
