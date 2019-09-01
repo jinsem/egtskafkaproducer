@@ -17,6 +17,10 @@ type KafkaProducer struct {
 	logger        *log.Logger
 }
 
+const (
+	PackageIdHeaderName = "PACKAGE_ID"
+)
+
 func (p *KafkaProducer) Initialize(cfg *KafkaSettings, logger *log.Logger) error {
 	if cfg == nil {
 		return fmt.Errorf("Configuration is not set")
@@ -58,11 +62,17 @@ func (p *KafkaProducer) Produce(measurementPackage *egtsschema.MeasurementPackag
 	measurementPackage.Schema()
 	AddSchemaRegistryHeader(&buf, p.valueSchemaId)
 	err := measurementPackage.Serialize(&buf)
+	header := kafka.Header{
+		Key:   PackageIdHeaderName,
+		Value: []byte(measurementPackage.Guid),
+	}
 	if err == nil {
 		innerPkg := buf.Bytes()
+
 		kafkaMsg := kafka.Message{
-			Key:   nil,
-			Value: innerPkg,
+			Key:     nil,
+			Value:   innerPkg,
+			Headers: []kafka.Header{header},
 		}
 		err = p.writer.WriteMessages(context.Background(), kafkaMsg)
 	}
