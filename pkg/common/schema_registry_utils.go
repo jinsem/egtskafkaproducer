@@ -5,6 +5,10 @@ import (
 	"github.com/landoop/schema-registry"
 )
 
+const (
+	subjectNotFoundError = 40401
+)
+
 // AddSchemaRegistryHeader puts header to the message to make it compatible with Kafka avro serde that
 // uses schema registry. The header consists of 5 bytes:
 // 1st byte is always zero.
@@ -21,7 +25,10 @@ func AddSchemaRegistryHeader(buffer *bytes.Buffer, schemaId uint32) {
 func RegisterSchemaIfNotExists(schemaRegistryClient *schemaregistry.Client, subject string, schema string) (uint32, error) {
 	registered, existedSchema, err := schemaRegistryClient.IsRegistered(subject, schema)
 	if err != nil {
-		return uint32(0), err
+		resErr, ok := err.(schemaregistry.ResourceError)
+		if !ok || resErr.ErrorCode != subjectNotFoundError {
+			return uint32(0), err
+		}
 	}
 	if registered {
 		return uint32(existedSchema.ID), nil
