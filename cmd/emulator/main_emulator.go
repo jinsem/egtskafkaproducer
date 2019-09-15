@@ -22,13 +22,13 @@ func main() {
 	logger.SetHeader("${time_rfc3339_nano} ${short_file}:${line} ${level} -${message}")
 	logger.SetLevel(log.DEBUG)
 	settings := common.KafkaSettings{
-		Brokers:           []string{"localhost:29092"},
+		Brokers:           []string{"localhost:9093"},
 		SchemaRegistryUrl: "http://localhost:8081",
 		OutputTopicName:   "sensor_data",
 	}
 	kafkaProducer := common.KafkaProducer{}
 	_ = kafkaProducer.Initialize(&settings, logger)
-	for i := 0; i < 1; i++ {
+	for i := 0; i < 10; i++ {
 		fakePackege := makMeasurementPackage()
 		_ = kafkaProducer.Produce(&fakePackege)
 	}
@@ -46,7 +46,7 @@ func makMeasurementPackage() egtsschema.MeasurementPackage {
 	result.Guid = fmt.Sprintf("%s", uuid.New())
 	result.Imei = &egtsschema.UnionNullString{String: rndImei}
 
-	curTimeStamp := time.Now().UTC().Unix()
+	curTimeStamp := time.Now().UTC().UnixNano() / int64(time.Millisecond)
 	result.MeasurementTimestamp = curTimeStamp
 	result.ReceivedTimestamp = curTimeStamp - 1000
 	result.Latitude = &egtsschema.UnionNullDouble{Double: 12.9, UnionType: egtsschema.UnionNullDoubleTypeEnumDouble}

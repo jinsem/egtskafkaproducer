@@ -220,8 +220,8 @@ func handleReceivedPackage(conn net.Conn, producer common.KafkaProducer) {
 }
 
 func setSrPosData(exportPacket *egtsschema.MeasurementPackage, subRecData *egts.SrPosData) {
-	exportPacket.MeasurementTimestamp = subRecData.NavigationTime.Unix()
-	exportPacket.ReceivedTimestamp = time.Now().UTC().Unix()
+	exportPacket.MeasurementTimestamp = subRecData.NavigationTime.UnixNano() / int64(time.Millisecond)
+	exportPacket.ReceivedTimestamp = time.Now().UTC().UnixNano() / int64(time.Millisecond)
 	setUnionNullDoubleVal(subRecData.Latitude, exportPacket.Latitude)
 	setUnionNullDoubleVal(subRecData.Longitude, exportPacket.Longitude)
 	setUnionNullInt(int32(subRecData.Speed), exportPacket.Speed)
